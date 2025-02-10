@@ -137,7 +137,7 @@ void DivoomClient::GetCategoryFileList(DivoomFileInfoLite *files_list, uint8_t *
   payload["FileSize"] = 1;  // Animation 16x16
   payload["FileType"] = 1;  // Animation 16x16
   payload["RefreshIndex"] = 0;
-  payload["FileSort"] = 0;
+  payload["FileSort"] = 1;
 
   DynamicJsonDocument doc = SendPost(ENDPOINT_CATEGORY_FILE_LIST, payload);
   JsonArray doc_file_list = doc["FileList"];
@@ -148,9 +148,10 @@ void DivoomClient::GetCategoryFileList(DivoomFileInfoLite *files_list, uint8_t *
     ++i;
     long gallery_id = obj["GalleryId"];
     const char* file_id = (const char*) obj["FileId"];
+    const char* file_name = (const char*) obj["FileName"];
 
     Serial.println(file_id);
-    files_list[i] = {gallery_id, file_id};
+    files_list[i] = {gallery_id, file_id, file_name};
   }
 }
 
@@ -294,7 +295,8 @@ void DivoomClient::_OnParseData(void* arg, AsyncSSLClient* client, void *data, s
 }
 
 void DivoomClient::_OnParseError(void* arg, AsyncSSLClient* client, int8_t error) {
-  Serial.println(F("[CALLBACK] error"));
+  Serial.print(F("[CALLBACK] error: "));
+  Serial.println(F(error));
   _parse_current_step = DivoomParseStep::Error;
 }
 
@@ -316,13 +318,13 @@ void DivoomClient::_OnParsePoll(void* arg, AsyncSSLClient* client) {
     Serial.println(F("Abort"));
     _parse_last_packet_time = 0;
     _parse_current_step = DivoomParseStep::Error;
-    client->close();
+    //client->close();
   }
 }
 
 void DivoomClient::_OnParseDisconnect(void* arg, AsyncSSLClient* client) {
   _tcp_client.free();
-  Serial.println(F("[CALLBACK] discconnected"));
+  Serial.println(F("[CALLBACK] disconnected"));
   if (_parse_current_step == DivoomParseStep::End) {
     if (_parse_success_cb) {
       _parse_success_cb(_parse_pixel_bean_header);

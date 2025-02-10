@@ -28,7 +28,7 @@
 struct DivoomFileInfoLite {
   long gallery_id;
   const char* file_id;
-  // String file_name;
+  String file_name;
   // String content;
 };
 
